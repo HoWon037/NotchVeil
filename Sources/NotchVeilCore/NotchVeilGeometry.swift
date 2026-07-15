@@ -1,7 +1,7 @@
 import CoreGraphics
 import Foundation
 
-public struct HeaderScreenMetrics {
+public struct NotchVeilScreenMetrics {
     public var frame: CGRect
     public var safeAreaTop: CGFloat
     public var auxiliaryTopLeft: CGRect
@@ -23,7 +23,7 @@ public struct HeaderScreenMetrics {
     }
 }
 
-public struct HeaderGeometry {
+public struct NotchVeilGeometry {
     public var panelFrame: CGRect
     public var notchHeight: CGFloat
     public var underlap: CGFloat
@@ -35,11 +35,11 @@ public struct HeaderGeometry {
     }
 }
 
-public enum HeaderGeometryCalculator {
+public enum NotchVeilGeometryCalculator {
     /// Returns nil for displays without a top safe-area inset. The panel extends
     /// slightly behind normal app windows so their own corner mask defines the
     /// visible curve without inspecting or modifying another app.
-    public static func geometry(for metrics: HeaderScreenMetrics) -> HeaderGeometry? {
+    public static func geometry(for metrics: NotchVeilScreenMetrics) -> NotchVeilGeometry? {
         let auxiliaryHeight = max(
             metrics.auxiliaryTopLeft.height,
             metrics.auxiliaryTopRight.height
@@ -57,7 +57,7 @@ public enum HeaderGeometryCalculator {
         let left = round(metrics.frame.minX * scale) / scale
         let right = round(metrics.frame.maxX * scale) / scale
 
-        return HeaderGeometry(
+        return NotchVeilGeometry(
             panelFrame: CGRect(
                 x: left,
                 y: bottom,
@@ -70,7 +70,7 @@ public enum HeaderGeometryCalculator {
     }
 }
 
-public enum HeaderShapeCalculator {
+public enum NotchVeilShapeCalculator {
     /// Creates a full-width notch-height band with only two curved corner
     /// wedges extending into the underlap. The transparent center prevents the
     /// underlap from appearing as a straight bar on the desktop.

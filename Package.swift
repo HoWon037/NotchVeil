@@ -8,24 +8,24 @@ let package = Package(
         .macOS(.v12)
     ],
     products: [
-        .library(name: "HeaderCore", targets: ["HeaderCore"]),
+        .library(name: "NotchVeilCore", targets: ["NotchVeilCore"]),
         .executable(name: "NotchVeil", targets: ["NotchVeil"]),
         .executable(name: "NotchVeilLoginLauncher", targets: ["NotchVeilLoginLauncher"])
     ],
     targets: [
-        .target(name: "HeaderCore"),
+        .target(name: "NotchVeilCore"),
         .executableTarget(
             name: "NotchVeil",
-            dependencies: ["HeaderCore"],
-            path: "Sources/Header"
+            dependencies: ["NotchVeilCore"],
+            path: "Sources/NotchVeil"
         ),
         .executableTarget(
             name: "NotchVeilLoginLauncher",
             path: "Sources/LoginLauncher"
         ),
         .testTarget(
-            name: "HeaderCoreTests",
-            dependencies: ["HeaderCore"]
+            name: "NotchVeilCoreTests",
+            dependencies: ["NotchVeilCore"]
         )
     ]
 )

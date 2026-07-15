@@ -1,7 +1,7 @@
 import AppKit
-import HeaderCore
+import NotchVeilCore
 
-private final class HeaderShapeView: NSView {
+private final class NotchVeilShapeView: NSView {
     private let shapeLayer = CAShapeLayer()
     private var underlap: CGFloat
 
@@ -34,18 +34,18 @@ private final class HeaderShapeView: NSView {
 
     private func updateShape() {
         shapeLayer.frame = bounds
-        shapeLayer.path = HeaderShapeCalculator.path(in: bounds, underlap: underlap)
+        shapeLayer.path = NotchVeilShapeCalculator.path(in: bounds, underlap: underlap)
     }
 }
 
-final class HeaderPanel: NSPanel {
-    private let shapeView: HeaderShapeView
+final class NotchVeilPanel: NSPanel {
+    private let shapeView: NotchVeilShapeView
 
     override var canBecomeKey: Bool { false }
     override var canBecomeMain: Bool { false }
 
-    init(geometry: HeaderGeometry) {
-        shapeView = HeaderShapeView(
+    init(geometry: NotchVeilGeometry) {
+        shapeView = NotchVeilShapeView(
             frame: NSRect(origin: .zero, size: geometry.panelFrame.size),
             underlap: geometry.underlap
         )
@@ -79,7 +79,7 @@ final class HeaderPanel: NSPanel {
         contentView = shapeView
     }
 
-    func updateGeometry(_ geometry: HeaderGeometry) {
+    func updateGeometry(_ geometry: NotchVeilGeometry) {
         setFrame(geometry.panelFrame, display: true, animate: false)
         shapeView.update(underlap: geometry.underlap)
     }

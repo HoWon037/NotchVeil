@@ -1,10 +1,10 @@
 import AppKit
-import HeaderCore
+import NotchVeilCore
 import ServiceManagement
 
 @MainActor
-final class HeaderController: NSObject, NSApplicationDelegate {
-    private var panelsByScreenNumber: [NSNumber: HeaderPanel] = [:]
+final class NotchVeilController: NSObject, NSApplicationDelegate {
+    private var panelsByScreenNumber: [NSNumber: NotchVeilPanel] = [:]
     private var observers: [NSObjectProtocol] = []
     private let settings = AppSettings()
     private var settingsWindowController: SettingsWindowController?
@@ -129,7 +129,7 @@ final class HeaderController: NSObject, NSApplicationDelegate {
                 continue
             }
 
-            let metrics = HeaderScreenMetrics(
+            let metrics = NotchVeilScreenMetrics(
                 frame: screen.frame,
                 safeAreaTop: screen.safeAreaInsets.top,
                 auxiliaryTopLeft: screen.auxiliaryTopLeftArea ?? .zero,
@@ -137,13 +137,13 @@ final class HeaderController: NSObject, NSApplicationDelegate {
                 backingScaleFactor: screen.backingScaleFactor
             )
 
-            guard let geometry = HeaderGeometryCalculator.geometry(for: metrics) else {
+            guard let geometry = NotchVeilGeometryCalculator.geometry(for: metrics) else {
                 panelsByScreenNumber.removeValue(forKey: screenNumber)?.orderOut(nil)
                 continue
             }
 
             activeScreenNumbers.insert(screenNumber)
-            let panel = panelsByScreenNumber[screenNumber] ?? HeaderPanel(geometry: geometry)
+            let panel = panelsByScreenNumber[screenNumber] ?? NotchVeilPanel(geometry: geometry)
             panel.updateGeometry(geometry)
             panel.orderFrontRegardless()
             panelsByScreenNumber[screenNumber] = panel
