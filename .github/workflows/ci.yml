@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Build and test
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Show toolchain
+        run: swift --version
+
+      - name: Build
+        run: swift build -v
+
+      - name: Test
+        run: swift test -v
+
+  package:
+    name: Package app bundle
+    runs-on: macos-15
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+
+      # Ad-hoc signed: verifies the bundle layout and release build only.
+      # Launch-at-login needs a Developer ID identity, which CI does not hold.
+      - name: Build .app
+        run: ./scripts/build-app.sh
+
+      - name: Verify bundle layout
+        run: |
+          test -x dist/NotchVeil.app/Contents/MacOS/NotchVeil
+          test -x dist/NotchVeil.app/Contents/Library/LoginItems/NotchVeilLoginLauncher.app/Contents/MacOS/NotchVeilLoginLauncher
+          codesign --verify --strict --verbose=2 dist/NotchVeil.app
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: NotchVeil-app
+          path: dist/NotchVeil.app
