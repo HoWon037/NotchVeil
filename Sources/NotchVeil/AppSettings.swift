@@ -1,15 +1,13 @@
 import Combine
 import Foundation
+import NotchVeilCore
 import ServiceManagement
 
 @MainActor
 final class AppSettings: ObservableObject {
     private static let loginLauncherIdentifier = "com.limdy.NotchVeil.LoginLauncher"
 
-    private enum Key {
-        static let isEnabled = "isEnabled"
-        static let showsMenuBarIcon = "showsMenuBarIcon"
-    }
+    private typealias Key = NotchVeilDefaultsKey
 
     @Published private(set) var isEnabled: Bool
     @Published private(set) var launchesAtLogin: Bool
@@ -24,6 +22,8 @@ final class AppSettings: ObservableObject {
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
+
+        NotchVeilDefaultsMigrator.migrate(defaults)
 
         if defaults.object(forKey: Key.isEnabled) == nil {
             defaults.set(true, forKey: Key.isEnabled)
