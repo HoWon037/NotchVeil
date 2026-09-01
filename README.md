@@ -15,10 +15,29 @@ NotchVeil은 노치가 있는 Mac의 메뉴 막대 뒤에 정적인 검은 배�
 - 설정 창이 열려 있을 때는 Dock과 AltTab에 표시되고, 닫으면 백그라운드 앱으로 돌아갑니다.
 - 로그인 자동 실행 시에는 설정 창 없이 저장된 노치 가리기 상태로 시작합니다.
 
+## 요구 사항
+
+- macOS 12 이상 (노치가 있는 Mac). 노치가 없는 디스플레이에서는 아무것도 그리지 않습니다.
+- 로그인 자동 실행은 macOS 13 이상에서만 사용할 수 있고, 그 아래에서는 설정 창의 토글이 비활성으로 표시됩니다.
+
 ## 실행
 
 ```sh
 ./scripts/run.sh
+```
+
+## 빌드와 서명
+
+```sh
+./scripts/build-app.sh
+```
+
+기본값은 애드혹 서명(`-`)입니다. 이 상태로도 앱은 실행되지만 macOS가 `SMAppService` 로그인 항목 등록을
+거부하는 경우가 많아 "로그인할 때 자동 실행"이 실패할 수 있습니다. 자동 실행까지 확인하려면 Developer ID로
+서명하십시오.
+
+```sh
+SIGN_IDENTITY="Developer ID Application: Your Name (TEAMID)" ./scripts/build-app.sh
 ```
 
 ## 종료
@@ -33,4 +52,4 @@ NotchVeil은 노치가 있는 Mac의 메뉴 막대 뒤에 정적인 검은 배�
 DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer swift test
 ```
 
-현재 버전은 macOS Golden Gate 27 베타에서 검증하기 위한 프로토타입입니다. 로그인 자동 실행과 메뉴 막대 아이콘은 기본적으로 꺼져 있습니다.
+현재 버전은 macOS 12를 최소 지원 버전으로 두고 macOS Golden Gate 27 베타에서 검증 중인 프로토타입입니다. 로그인 자동 실행과 메뉴 막대 아이콘은 기본적으로 꺼져 있습니다.

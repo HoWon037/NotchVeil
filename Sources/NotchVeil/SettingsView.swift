@@ -33,6 +33,9 @@ struct SettingsView: View {
 
                 SettingToggleRow(
                     title: "로그인할 때 자동 실행",
+                    subtitle: settings.canManageLaunchAtLogin
+                        ? nil
+                        : "macOS 13 이상에서 사용할 수 있습니다.",
                     isOn: Binding(
                         get: { settings.launchesAtLogin },
                         set: { settings.setLaunchesAtLogin($0) }
@@ -67,13 +70,25 @@ struct SettingsView: View {
 
 private struct SettingToggleRow: View {
     let title: String
+    var subtitle: String?
     @Binding var isOn: Bool
     var isEnabled = true
 
     var body: some View {
-        HStack {
-            Text(title)
+        HStack(alignment: .firstTextBaseline) {
+            VStack(alignment: .leading, spacing: 3) {
+                Text(title)
+
+                if let subtitle {
+                    Text(subtitle)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+
             Spacer()
+
             Toggle("", isOn: $isOn)
                 .labelsHidden()
                 .toggleStyle(.switch)
