@@ -5,7 +5,8 @@ import ServiceManagement
 @MainActor
 final class NotchVeilController: NSObject, NSApplicationDelegate {
     private var panelsByScreenNumber: [NSNumber: NotchVeilPanel] = [:]
-    private var observers: [NSObjectProtocol] = []
+    private var defaultCenterObservers: [NSObjectProtocol] = []
+    private var workspaceObservers: [NSObjectProtocol] = []
     private let settings = AppSettings()
     private var settingsWindowController: SettingsWindowController?
     private var statusItem: NSStatusItem?
@@ -29,9 +30,7 @@ final class NotchVeilController: NSObject, NSApplicationDelegate {
         hidePanels()
         removeStatusItem()
         ProcessInfo.processInfo.enableAutomaticTermination("NotchVeil maintains the notch background")
-        observers.forEach(NotificationCenter.default.removeObserver)
-        observers.forEach(NSWorkspace.shared.notificationCenter.removeObserver)
-        observers.removeAll()
+        removeObservers()
     }
 
     func applicationShouldHandleReopen(
@@ -67,7 +66,7 @@ final class NotchVeilController: NSObject, NSApplicationDelegate {
     }
 
     private func installObservers() {
-        observers.append(
+        defaultCenterObservers.append(
             NotificationCenter.default.addObserver(
                 forName: NSApplication.didChangeScreenParametersNotification,
                 object: nil,
@@ -86,7 +85,7 @@ final class NotchVeilController: NSObject, NSApplicationDelegate {
         ]
 
         for name in workspaceNotifications {
-            observers.append(
+            workspaceObservers.append(
                 workspaceCenter.addObserver(
                     forName: name,
                     object: nil,
@@ -104,7 +103,7 @@ final class NotchVeilController: NSObject, NSApplicationDelegate {
         ]
 
         for name in hideNotifications {
-            observers.append(
+            workspaceObservers.append(
                 workspaceCenter.addObserver(
                     forName: name,
                     object: nil,
@@ -114,6 +113,13 @@ final class NotchVeilController: NSObject, NSApplicationDelegate {
                 }
             )
         }
+    }
+
+    private func removeObservers() {
+        defaultCenterObservers.forEach(NotificationCenter.default.removeObserver)
+        defaultCenterObservers.removeAll()
+        workspaceObservers.forEach(NSWorkspace.shared.notificationCenter.removeObserver)
+        workspaceObservers.removeAll()
     }
 
     private func rebuildPanels() {

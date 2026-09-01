@@ -32,9 +32,15 @@ private final class NotchVeilShapeView: NSView {
         updateShape()
     }
 
+    /// The window sets `animationBehavior = .none`, but that does not cover the
+    /// layer's implicit animations. Without this the veil visibly morphs when a
+    /// display is attached or the resolution changes.
     private func updateShape() {
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
         shapeLayer.frame = bounds
         shapeLayer.path = NotchVeilShapeCalculator.path(in: bounds, underlap: underlap)
+        CATransaction.commit()
     }
 }
 
