@@ -5,6 +5,8 @@ import Foundation
 public enum NotchVeilDefaultsKey {
     public static let isEnabled = "NotchVeil.isEnabled"
     public static let showsMenuBarIcon = "NotchVeil.showsMenuBarIcon"
+    /// cdhash of the app bundle as it was when the login item was registered.
+    public static let loginItemAppCodeHash = "NotchVeil.loginItemAppCodeHash"
 
     static let legacyIsEnabled = "isEnabled"
     static let legacyShowsMenuBarIcon = "showsMenuBarIcon"
