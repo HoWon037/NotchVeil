@@ -1,13 +1,10 @@
 import Combine
 import Foundation
 import NotchVeilCore
-import Security
 import ServiceManagement
 
 @MainActor
 final class AppSettings: ObservableObject {
-    private static let loginLauncherIdentifier = "com.limdy.NotchVeil.LoginLauncher"
-
     private typealias Key = NotchVeilDefaultsKey
 
     @Published private(set) var isEnabled: Bool
@@ -60,7 +57,7 @@ final class AppSettings: ObservableObject {
     func setLaunchesAtLogin(_ enabled: Bool) {
         guard #available(macOS 13.0, *) else { return }
 
-        let service = Self.loginLauncherService
+        let service = LoginItemRegistration.service
 
         do {
             if enabled {
@@ -77,7 +74,7 @@ final class AppSettings: ObservableObject {
                 @unknown default:
                     try service.register()
                 }
-                rememberRegisteredCodeHash()
+                LoginItemRegistration.noteRegistered(defaults: defaults)
             } else {
                 if service.status != .notRegistered {
                     try service.unregister()
@@ -101,88 +98,29 @@ final class AppSettings: ObservableObject {
         launchesAtLogin = Self.currentLaunchAtLoginState
     }
 
-    /// launchd pins a login item to the code identity it was registered with. An
-    /// ad-hoc signature has no stable identity, so replacing the app invalidates
-    /// the registration: launchd then fails to spawn the launcher with EX_CONFIG
-    /// at every login while `SMAppService` still reports `.enabled`, which makes
-    /// the breakage invisible. Re-register whenever the installed app no longer
-    /// matches the one we registered for.
-    ///
-    /// This tracks the *app* bundle rather than the launcher, because the app's
-    /// signature seals its nested code -- the launcher can be byte-identical
-    /// across a rebuild while the registration is still stale.
-    func reconcileLoginItemRegistration() {
-        guard #available(macOS 13.0, *) else { return }
-
-        let service = Self.loginLauncherService
-        let status = service.status
-        guard status == .enabled || status == .requiresApproval else { return }
-
-        guard let installedHash = Self.appCodeHash() else { return }
-        guard defaults.string(forKey: Key.loginItemAppCodeHash) != installedHash else { return }
-
-        do {
-            if service.status != .notRegistered {
-                try service.unregister()
-            }
-            try service.register()
-            defaults.set(installedHash, forKey: Key.loginItemAppCodeHash)
-            NSLog("NotchVeil re-registered the login item for %@", installedHash)
-        } catch {
-            NSLog(
-                "NotchVeil could not re-register the login item: %@",
-                error.localizedDescription
-            )
-        }
-
-        refreshLaunchAtLoginState()
-
-        if Self.loginLauncherService.status == .requiresApproval {
-            onLoginItemRequiresApproval?()
-        }
-    }
-
-    private func rememberRegisteredCodeHash() {
-        guard let hash = Self.appCodeHash() else { return }
-        defaults.set(hash, forKey: Key.loginItemAppCodeHash)
-    }
-
-    /// Reads the cdhash of this app bundle, which is the code identity the login
-    /// item registration is bound to.
-    private static func appCodeHash() -> String? {
-        var staticCode: SecStaticCode?
-        guard SecStaticCodeCreateWithPath(
-            Bundle.main.bundleURL as CFURL, [], &staticCode
-        ) == errSecSuccess, let staticCode else {
-            return nil
-        }
-
-        var information: CFDictionary?
-        guard SecCodeCopySigningInformation(
-            staticCode,
-            SecCSFlags(rawValue: 0),   // kSecCSDefaultFlags
-            &information
-        ) == errSecSuccess else {
-            return nil
-        }
-
-        guard let details = information as? [String: Any],
-              let hash = details[kSecCodeInfoUnique as String] as? Data else {
-            return nil
-        }
-
-        return hash.map { String(format: "%02x", $0) }.joined()
-    }
-
     private static var currentLaunchAtLoginState: Bool {
         guard #available(macOS 13.0, *) else { return false }
-        let status = loginLauncherService.status
+        let status = LoginItemRegistration.service.status
         return status == .enabled || status == .requiresApproval
     }
 
-    @available(macOS 13.0, *)
-    private static var loginLauncherService: SMAppService {
-        SMAppService.loginItem(identifier: loginLauncherIdentifier)
+    /// Reports a login item registered for a different build.
+    ///
+    /// The app cannot repair this from its own process -- see
+    /// `LoginItemRegistration` for what was measured. Detecting it is still
+    /// worth doing: otherwise the only symptom is a login that silently does
+    /// nothing.
+    func reportStaleLoginItemRegistration() {
+        guard #available(macOS 13.0, *) else { return }
+        guard LoginItemRegistration.needsRepair(defaults: defaults) else { return }
+
+        NSLog(
+            """
+            NotchVeil login item is registered for a different build and will             not start at login; run scripts/install.sh, or             '%@/Contents/MacOS/NotchVeil %@' from a terminal
+            """,
+            Bundle.main.bundleURL.path,
+            LoginItemRegistration.standaloneFlag
+        )
     }
 
     private static func migrateMainAppLoginItemIfNeeded() {
@@ -195,8 +133,8 @@ final class AppSettings: ObservableObject {
 
         do {
             try oldService.unregister()
-            if loginLauncherService.status == .notRegistered {
-                try loginLauncherService.register()
+            if LoginItemRegistration.service.status == .notRegistered {
+                try LoginItemRegistration.service.register()
             }
         } catch {
             NSLog("NotchVeil login item migration failed: %@", error.localizedDescription)

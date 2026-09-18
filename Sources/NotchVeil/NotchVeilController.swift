@@ -16,7 +16,7 @@ final class NotchVeilController: NSObject, NSApplicationDelegate {
         ProcessInfo.processInfo.disableAutomaticTermination("NotchVeil maintains the notch background")
         NSApp.setActivationPolicy(.accessory)
         connectSettings()
-        settings.reconcileLoginItemRegistration()
+        settings.reportStaleLoginItemRegistration()
         installObservers()
         rebuildPanels()
         updateStatusItemVisibility()

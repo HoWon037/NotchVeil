@@ -41,10 +41,39 @@ NotchVeil은 노치가 있는 Mac의 메뉴 막대 뒤에 정적인 검은 배�
 SIGN_IDENTITY="Developer ID Application: Your Name (TEAMID)" ./scripts/build-app.sh
 ```
 
+## 설치
+
+```sh
+./scripts/install.sh
+```
+
+`/Applications`에 설치한 뒤 로그인 항목을 다시 등록합니다.
+
 애드혹 서명에는 고정된 신원이 없어서, launchd는 로그인 항목을 등록 당시의 code identity(cdhash)에 묶어
 둡니다. 앱을 새 빌드로 교체하면 이 값이 달라져 로그인 때 런처가 `EX_CONFIG`(78)로 실패하는데,
-`SMAppService`는 계속 `.enabled`를 보고하기 때문에 겉으로는 멀쩡해 보입니다. 그래서 앱은 실행할 때마다
-등록에 사용한 cdhash와 현재 번들을 비교하고, 다르면 로그인 항목을 조용히 다시 등록합니다.
+`SMAppService`는 계속 `.enabled`를 보고하기 때문에 겉으로는 멀쩡해 보입니다. 로그인해도 아무 일이 일어나지
+않는 것이 유일한 증상입니다.
+
+macOS 27에서 측정한 결과, 재등록이 반영되려면 두 조건이 모두 필요합니다.
+
+- 번들이 바뀐 뒤 1분 남짓 지날 것
+- 실행 중인 앱의 자손이 아닌 프로세스에서 등록할 것
+
+그래서 앱은 이 상태를 감지해 로그로 알리기만 하고, 실제 재등록은 설치 스크립트가 맡습니다. 수동으로는
+다음과 같이 복구합니다. 한 번에 반영되지 않으면 1분쯤 뒤 다시 실행하십시오.
+
+```sh
+/Applications/NotchVeil.app/Contents/MacOS/NotchVeil --register-login-item
+```
+
+로그인 항목이 실제로 동작하는지는 다음으로 확인할 수 있습니다. `last exit code = 0`이면 정상,
+`78: EX_CONFIG`이면 재등록이 필요합니다.
+
+```sh
+launchctl print gui/$(id -u)/com.limdy.NotchVeil.LoginLauncher | grep 'last exit'
+```
+
+Developer ID로 서명하면 제약이 팀 식별자 기준으로 걸려 이 문제 자체가 사라집니다.
 
 ## 종료
 
