@@ -2,8 +2,14 @@
 //
 //   swift scripts/make-app-icon.swift Resources
 //
-// The artwork is procedural, so every icns slice is rendered natively at its
-// own pixel size instead of being downsampled from 1024.
+// The subject is the machine itself: a MacBook display seen head on, with the
+// notch cut into the top of the screen. Drawing a real object rather than an
+// abstract band is what keeps it from looking like a generated placeholder.
+//
+// Everything is flat. No gradients, no baked container, no rim highlight, no
+// drop shadow -- macOS 26+ composites its own, and faking them is what made the
+// previous icon read as cheap. The artwork is procedural, so every icns slice is
+// rendered natively at its own pixel size instead of downsampled from 1024.
 
 import AppKit
 import Foundation
@@ -26,12 +32,11 @@ func hex(_ value: UInt32) -> NSColor {
     )
 }
 
-/// A near-white body that still holds its silhouette on a light Dock, under a
-/// true-black band. The band is #000 because that is what the app actually
-/// paints on screen.
-let bodyTopColor = hex(0xFBFCFD)
-let bodyBottomColor = hex(0xDDE1E9)
-let bandColor = NSColor.black
+/// Near-black for the bezel and the notch, because that is what the app paints
+/// on screen. Warm off-white for the display: pure white loses its edge on a
+/// light Dock.
+let bezelColor = hex(0x0A0A0B)
+let screenColor = hex(0xF2EEE6)
 
 // MARK: - Geometry
 
@@ -71,20 +76,34 @@ func squirclePath(in rect: CGRect, radius: CGFloat) -> CGPath {
     return path
 }
 
-/// One of the two curved wedges the real panel extends into the underlap.
-func wedgePath(in art: CGRect, bandHeight: CGFloat, radius: CGFloat, isLeft: Bool) -> CGPath {
+/// The notch, hanging from `top`. The small outward fillets where it meets the
+/// top edge are what make it read as a notch rather than a slot.
+func notchPath(centerX: CGFloat, top: CGFloat, width: CGFloat, depth: CGFloat) -> CGPath {
     let path = CGMutablePath()
-    let bandBottom = art.maxY - bandHeight
-    let edgeX = isLeft ? art.minX : art.maxX
-    let innerX = isLeft ? art.minX + radius : art.maxX - radius
-    let controlX = isLeft ? art.minX + radius * 0.45 : art.maxX - radius * 0.45
+    let innerRadius = min(depth * 0.42, width * 0.14)
+    let outerRadius = innerRadius * 0.85
+    let left = centerX - width / 2
+    let right = centerX + width / 2
 
-    path.move(to: CGPoint(x: edgeX, y: bandBottom))
-    path.addLine(to: CGPoint(x: edgeX, y: bandBottom - radius))
-    path.addCurve(
-        to: CGPoint(x: innerX, y: bandBottom),
-        control1: CGPoint(x: edgeX, y: bandBottom - radius * 0.45),
-        control2: CGPoint(x: controlX, y: bandBottom)
+    path.move(to: CGPoint(x: left - outerRadius, y: top))
+    path.addQuadCurve(
+        to: CGPoint(x: left, y: top - outerRadius),
+        control: CGPoint(x: left, y: top)
+    )
+    path.addLine(to: CGPoint(x: left, y: top - depth + innerRadius))
+    path.addQuadCurve(
+        to: CGPoint(x: left + innerRadius, y: top - depth),
+        control: CGPoint(x: left, y: top - depth)
+    )
+    path.addLine(to: CGPoint(x: right - innerRadius, y: top - depth))
+    path.addQuadCurve(
+        to: CGPoint(x: right, y: top - depth + innerRadius),
+        control: CGPoint(x: right, y: top - depth)
+    )
+    path.addLine(to: CGPoint(x: right, y: top - outerRadius))
+    path.addQuadCurve(
+        to: CGPoint(x: right + outerRadius, y: top),
+        control: CGPoint(x: right, y: top)
     )
     path.closeSubpath()
     return path
@@ -93,43 +112,36 @@ func wedgePath(in art: CGRect, bandHeight: CGFloat, radius: CGFloat, isLeft: Boo
 // MARK: - Drawing
 
 func drawIcon(in context: CGContext, canvas: CGFloat) {
-    // 824 of 1024: the classic macOS icon grid, so NotchVeil sits at the same
-    // optical size as its neighbours in the Dock. No baked container shadow or
-    // rim highlight -- macOS 26+ composites its own.
+    // 824 of 1024: the macOS icon grid, so NotchVeil sits at the same optical
+    // size as its neighbours in the Dock.
     let inset = canvas * (100.0 / 1024.0)
     let art = CGRect(x: inset, y: inset, width: canvas - inset * 2, height: canvas - inset * 2)
-    let body = squirclePath(in: art, radius: art.width * 0.225)
 
     context.saveGState()
-    context.addPath(body)
+    context.addPath(squirclePath(in: art, radius: art.width * 0.225))
     context.clip()
 
-    let colorSpace = CGColorSpace(name: CGColorSpace.sRGB)!
-    let gradient = CGGradient(
-        colorsSpace: colorSpace,
-        colors: [bodyTopColor.cgColor, bodyBottomColor.cgColor] as CFArray,
-        locations: nil
-    )!
-    context.drawLinearGradient(
-        gradient,
-        start: CGPoint(x: art.midX, y: art.maxY),
-        end: CGPoint(x: art.midX, y: art.minY),
-        options: []
-    )
+    context.setFillColor(bezelColor.cgColor)
+    context.fill(art)
 
-    let bandHeight = art.height * 0.30
-    context.setFillColor(bandColor.cgColor)
-    context.fill(
-        CGRect(x: art.minX, y: art.maxY - bandHeight, width: art.width, height: bandHeight)
-    )
+    let bezelWidth = art.width * 0.085
+    let screen = art.insetBy(dx: bezelWidth, dy: bezelWidth)
+    context.setFillColor(screenColor.cgColor)
+    context.addPath(squirclePath(in: screen, radius: screen.width * 0.135))
+    context.fillPath()
 
-    let wedgeRadius = art.width * 0.11
-    for isLeft in [true, false] {
-        context.addPath(
-            wedgePath(in: art, bandHeight: bandHeight, radius: wedgeRadius, isLeft: isLeft)
+    // Wider and deeper than the real notch, which is the only way it survives
+    // to 16pt.
+    context.setFillColor(bezelColor.cgColor)
+    context.addPath(
+        notchPath(
+            centerX: art.midX,
+            top: screen.maxY,
+            width: screen.width * 0.46,
+            depth: screen.height * 0.20
         )
-        context.fillPath()
-    }
+    )
+    context.fillPath()
 
     context.restoreGState()
 }
