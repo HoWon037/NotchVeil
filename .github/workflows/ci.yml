@@ -1,5 +1,8 @@
 name: CI
 
+permissions:
+  contents: read
+
 on:
   push:
     branches: [master, main]
@@ -13,25 +16,31 @@ concurrency:
 jobs:
   test:
     name: Build and test
-    runs-on: macos-15
+    strategy:
+      matrix:
+        os: [macos-15, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Show toolchain
         run: swift --version
 
-      - name: Build
-        run: swift build -v
-
-      - name: Test
-        run: swift test -v
+      - name: Check source and run tests
+        run: zsh scripts/check.sh
 
   package:
     name: Package app bundle
-    runs-on: macos-15
+    runs-on: macos-latest
+    timeout-minutes: 15
     needs: test
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       # Ad-hoc signed: verifies the bundle layout and release build only.
       # Launch-at-login needs a Developer ID identity, which CI does not hold.
@@ -43,8 +52,15 @@ jobs:
           test -x dist/NotchVeil.app/Contents/MacOS/NotchVeil
           test -x dist/NotchVeil.app/Contents/Library/LoginItems/NotchVeilLoginLauncher.app/Contents/MacOS/NotchVeilLoginLauncher
           codesign --verify --strict --verbose=2 dist/NotchVeil.app
+          test -f dist/NotchVeil.app/Contents/Resources/SettingsIcon.png
+          test -f dist/NotchVeil.app/Contents/Resources/SettingsIcon@2x.png
+
+      - name: Archive app with executable permissions
+        run: ditto -c -k --sequesterRsrc --keepParent dist/NotchVeil.app dist/NotchVeil.zip
 
       - uses: actions/upload-artifact@v4
         with:
           name: NotchVeil-app
-          path: dist/NotchVeil.app
+          path: dist/NotchVeil.zip
+          if-no-files-found: error
+          retention-days: 7

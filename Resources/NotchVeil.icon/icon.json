@@ -1,0 +1,12 @@
+{
+  "fill": { "solid": "extended-srgb:0.18,0.18,0.18,1.0" },
+  "groups": [
+    {
+      "layers": [
+        { "name": "Approved artwork", "image-name": "Artwork.png", "glass": false }
+      ],
+      "specular": false
+    }
+  ],
+  "supported-platforms": { "squares": "shared" }
+}

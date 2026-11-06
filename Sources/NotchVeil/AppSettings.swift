@@ -10,9 +10,11 @@ final class AppSettings: ObservableObject {
     @Published private(set) var isEnabled: Bool
     @Published private(set) var launchesAtLogin: Bool
     @Published private(set) var showsMenuBarIcon: Bool
+    @Published private(set) var language: AppLanguage
 
     var onEnabledChange: ((Bool) -> Void)?
     var onMenuBarIconChange: ((Bool) -> Void)?
+    var onLanguageChange: (() -> Void)?
     var onLoginItemError: ((String) -> Void)?
     var onLoginItemRequiresApproval: (() -> Void)?
 
@@ -20,6 +22,7 @@ final class AppSettings: ObservableObject {
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
+        language = .restored(defaults.string(forKey: Key.language))
 
         NotchVeilDefaultsMigrator.migrate(defaults)
 
@@ -38,6 +41,15 @@ final class AppSettings: ObservableObject {
             return true
         }
         return false
+    }
+
+    func text(_ key: AppText) -> String { language.text(key) }
+
+    func setLanguage(_ value: AppLanguage) {
+        guard language != value else { return }
+        language = value
+        defaults.set(value.rawValue, forKey: Key.language)
+        onLanguageChange?()
     }
 
     func setEnabled(_ enabled: Bool) {
@@ -104,22 +116,13 @@ final class AppSettings: ObservableObject {
         return status == .enabled || status == .requiresApproval
     }
 
-    /// Reports a login item registered for a different build.
-    ///
-    /// The app cannot repair this from its own process -- see
-    /// `LoginItemRegistration` for what was measured. Detecting it is still
-    /// worth doing: otherwise the only symptom is a login that silently does
-    /// nothing.
+    /// Log stale registrations; the installer performs the repair out of process.
     func reportStaleLoginItemRegistration() {
         guard #available(macOS 13.0, *) else { return }
         guard LoginItemRegistration.needsRepair(defaults: defaults) else { return }
 
-        NSLog(
-            """
-            NotchVeil login item is registered for a different build and will             not start at login; run scripts/install.sh, or             '%@/Contents/MacOS/NotchVeil %@' from a terminal
-            """,
-            Bundle.main.bundleURL.path,
-            LoginItemRegistration.standaloneFlag
+        LoginItemRegistration.logger.notice(
+            "NotchVeil login item may be stale. See the signing and login-item troubleshooting guide."
         )
     }
 
@@ -127,7 +130,8 @@ final class AppSettings: ObservableObject {
         guard #available(macOS 13.0, *) else { return }
 
         let oldService = SMAppService.mainApp
-        let oldIsRegistered = oldService.status == .enabled
+        let oldIsRegistered =
+            oldService.status == .enabled
             || oldService.status == .requiresApproval
         guard oldIsRegistered else { return }
 
@@ -137,7 +141,9 @@ final class AppSettings: ObservableObject {
                 try LoginItemRegistration.service.register()
             }
         } catch {
-            NSLog("NotchVeil login item migration failed: %@", error.localizedDescription)
+            LoginItemRegistration.logger.error(
+                "login item migration failed: \(error.localizedDescription, privacy: .private)"
+            )
         }
     }
 

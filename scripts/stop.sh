@@ -1,2 +1,3 @@
 #!/bin/zsh
-pkill -x NotchVeil 2>/dev/null || true
+set -euo pipefail
+pkill -u "$(id -u)" -x NotchVeil 2>/dev/null || true

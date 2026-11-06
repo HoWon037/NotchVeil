@@ -108,6 +108,7 @@ public enum NotchVeilShapeCalculator {
             control2: CGPoint(x: 0, y: control)
         )
         path.closeSubpath()
-        return path
+        var translation = CGAffineTransform(translationX: bounds.minX, y: bounds.minY)
+        return path.copy(using: &translation) ?? path
     }
 }

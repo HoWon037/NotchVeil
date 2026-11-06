@@ -8,7 +8,6 @@ let package = Package(
         .macOS(.v12)
     ],
     products: [
-        .library(name: "NotchVeilCore", targets: ["NotchVeilCore"]),
         .executable(name: "NotchVeil", targets: ["NotchVeil"]),
         .executable(name: "NotchVeilLoginLauncher", targets: ["NotchVeilLoginLauncher"])
     ],

@@ -2,18 +2,9 @@ import AppKit
 import Foundation
 import OSLog
 
-/// Starts the main app at login.
-///
-/// The previous version opened the app exactly once and exited on the first
-/// hiccup, which is why a login occasionally ended with nothing running: at
-/// login LaunchServices is still warming up, and a previous session's instance
-/// can still be tearing down. This keeps trying until the app is actually up.
+/// Starts the containing app and retries transient LaunchServices failures.
 private enum LoginLauncher {
-    /// A dedicated subsystem, so a failed login leaves evidence that survives to
-    /// `log show --predicate 'subsystem == "com.limdy.NotchVeil"'`. Plain NSLog
-    /// from a short-lived login agent is routinely dropped, and `.info` is kept
-    /// in memory only -- everything here logs at `.notice` or above so it lands
-    /// on disk and is still there after the next reboot.
+    // Keep failures visible in unified logging after this short-lived process exits.
     static let logger = Logger(subsystem: "com.limdy.NotchVeil", category: "LoginLauncher")
 
     static let mainBundleIdentifier = "com.limdy.NotchVeil"
@@ -30,13 +21,14 @@ private enum LoginLauncher {
         return url
     }()
 
-    /// An instance that is actually alive. `runningApplications` still lists a
-    /// process on its way out, and treating that as success was the other way a
-    /// login could silently end up with nothing running.
+    /// Ignore terminating instances and copies from a different installation.
     static func liveInstance() -> NSRunningApplication? {
         NSRunningApplication
             .runningApplications(withBundleIdentifier: mainBundleIdentifier)
-            .first { !$0.isTerminated }
+            .first {
+                !$0.isTerminated
+                    && $0.bundleURL?.resolvingSymlinksInPath() == mainAppURL.resolvingSymlinksInPath()
+            }
     }
 
     @MainActor
@@ -46,7 +38,7 @@ private enum LoginLauncher {
         } else {
             logger.notice("\(message, privacy: .public)")
         }
-        NSApp.terminate(nil)
+        exit(failed ? EXIT_FAILURE : EXIT_SUCCESS)
     }
 
     @MainActor
@@ -57,7 +49,9 @@ private enum LoginLauncher {
             let pid = running.processIdentifier
             DispatchQueue.main.asyncAfter(deadline: .now() + settleDelay) {
                 MainActor.assumeIsolated {
-                    if liveInstance() != nil {
+                    if let confirmed = liveInstance(),
+                        confirmed.processIdentifier == pid, confirmed.isFinishedLaunching
+                    {
                         stop("NotchVeil is running (pid \(pid))")
                     } else if attempt < maximumAttempts {
                         logger.notice("instance went away while settling, retrying")
@@ -76,7 +70,7 @@ private enum LoginLauncher {
         }
 
         guard Bundle(url: mainAppURL)?.bundleIdentifier == mainBundleIdentifier else {
-            stop("could not locate the main app at \(mainAppURL.path)", failed: true)
+            stop("could not locate the containing NotchVeil app", failed: true)
             return
         }
 
@@ -98,13 +92,14 @@ private enum LoginLauncher {
                     }
 
                     guard attempt < maximumAttempts else {
-                        stop("giving up: \(error.localizedDescription)", failed: true)
+                        logger.error("final launch error: \(error.localizedDescription, privacy: .private)")
+                        stop("could not launch NotchVeil", failed: true)
                         return
                     }
 
                     let delay = min(pow(2, Double(attempt - 1)) * 0.5, 8)
                     logger.error(
-                        "attempt \(attempt, privacy: .public) failed: \(error.localizedDescription, privacy: .public), retrying in \(delay, privacy: .public)s"
+                        "attempt \(attempt, privacy: .public) failed: \(error.localizedDescription, privacy: .private), retrying in \(delay, privacy: .public)s"
                     )
                     DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
                         MainActor.assumeIsolated { run(attempt: attempt + 1) }

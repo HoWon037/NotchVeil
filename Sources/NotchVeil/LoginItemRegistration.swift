@@ -1,38 +1,16 @@
 import Foundation
 import NotchVeilCore
+import OSLog
 import Security
 import ServiceManagement
 
-/// Keeps the login item registration valid across app updates.
-///
-/// launchd guards a login item with a lightweight code requirement pinned to the
-/// launcher's code identity. Replacing the app invalidates it, and the failure
-/// is invisible: `launchctl print` reports `needs LWCR update`, `SMAppService`
-/// still answers `.enabled`, and every login silently fails with `EX_CONFIG`.
-/// That is why logging in only sometimes brought the veil back.
-///
-/// Re-registering fixes it, but only under two conditions found by testing on
-/// macOS 27, and both are needed:
-///
-/// - at least about a minute must have passed since the bundle changed, and
-/// - the registration must come from a process that is not a descendant of the
-///   running app.
-///
-/// Everything else measured had no effect: repeating the cycle in-process, a
-/// delay alone, a fresh `SMAppService`, a child spawned with `Process` (with or
-/// without the delay), and a second instance launched through LaunchServices.
-///
-/// So the app does not pretend to fix this itself. It detects the stale
-/// registration and says so, and `scripts/install.sh` performs the repair by
-/// running this binary with `--register-login-item` from the installing shell,
-/// after the settling delay.
+/// Repairs stale login-item registrations after an app update.
+/// Ad-hoc signing may require delayed registration from the installer process;
+/// see docs/development.md for the environment-specific limitation.
 enum LoginItemRegistration {
+    static let logger = Logger(subsystem: "com.limdy.NotchVeil", category: "LoginItem")
     static let standaloneFlag = "--register-login-item"
     static let identifier = "com.limdy.NotchVeil.LoginLauncher"
-
-    /// How long launchd needs to settle after the bundle changed before a
-    /// registration takes. 60s worked in testing; 90 leaves headroom.
-    static let settleDelay: TimeInterval = 90
 
     @available(macOS 13.0, *)
     static var service: SMAppService {
@@ -50,8 +28,7 @@ enum LoginItemRegistration {
         return defaults.string(forKey: NotchVeilDefaultsKey.loginItemAppCodeHash) != installedHash
     }
 
-    /// Performs the repair. The hash is stored only on success, so an app that
-    /// is quit before this runs simply tries again on its next launch.
+    /// Store the new hash only after registration returns successfully.
     @discardableResult
     static func repair(defaults: UserDefaults = .standard) -> Bool {
         guard #available(macOS 13.0, *) else { return false }
@@ -64,29 +41,30 @@ enum LoginItemRegistration {
                 try service.unregister()
                 // unregister() returns before launchd has dropped the job, and
                 // registering into a half-removed record is its own staleness.
-                waitForUnregistration(of: service)
+                guard waitForUnregistration(of: service) else {
+                    logger.error("login item unregistration timed out; registration was not attempted")
+                    return false
+                }
             }
 
             try service.register()
         } catch {
-            NSLog(
-                "NotchVeil could not re-register the login item: %@",
-                error.localizedDescription
-            )
+            logger.error("could not re-register login item: \(error.localizedDescription, privacy: .private)")
             return false
         }
 
         defaults.set(installedHash, forKey: NotchVeilDefaultsKey.loginItemAppCodeHash)
-        NSLog("NotchVeil login item re-registered for %@", installedHash)
+        logger.notice("login item re-registered")
         return true
     }
 
     @available(macOS 13.0, *)
-    static func waitForUnregistration(of service: SMAppService, timeout: TimeInterval = 5) {
+    static func waitForUnregistration(of service: SMAppService, timeout: TimeInterval = 5) -> Bool {
         let deadline = Date().addingTimeInterval(timeout)
         while service.status != .notRegistered, Date() < deadline {
             RunLoop.current.run(until: Date().addingTimeInterval(0.1))
         }
+        return service.status == .notRegistered
     }
 
     /// Records the current bundle as the registered one, for when the user has
@@ -96,27 +74,31 @@ enum LoginItemRegistration {
         defaults.set(hash, forKey: NotchVeilDefaultsKey.loginItemAppCodeHash)
     }
 
-    /// The app bundle's cdhash. The app's signature seals its nested code, so
-    /// this changes whenever the launcher does.
+    /// The signed app's cdhash, including its sealed nested code.
     static func appCodeHash() -> String? {
         var staticCode: SecStaticCode?
-        guard SecStaticCodeCreateWithPath(
-            Bundle.main.bundleURL as CFURL, [], &staticCode
-        ) == errSecSuccess, let staticCode else {
+        guard
+            SecStaticCodeCreateWithPath(
+                Bundle.main.bundleURL as CFURL, [], &staticCode
+            ) == errSecSuccess, let staticCode
+        else {
             return nil
         }
 
         var information: CFDictionary?
-        guard SecCodeCopySigningInformation(
-            staticCode,
-            SecCSFlags(rawValue: 0),   // kSecCSDefaultFlags
-            &information
-        ) == errSecSuccess else {
+        guard
+            SecCodeCopySigningInformation(
+                staticCode,
+                SecCSFlags(rawValue: 0),  // kSecCSDefaultFlags
+                &information
+            ) == errSecSuccess
+        else {
             return nil
         }
 
         guard let details = information as? [String: Any],
-              let hash = details[kSecCodeInfoUnique as String] as? Data else {
+            let hash = details[kSecCodeInfoUnique as String] as? Data
+        else {
             return nil
         }
 
@@ -124,11 +106,13 @@ enum LoginItemRegistration {
     }
 
     /// Entry point for `--register-login-item`: repairs now, with no UI. Run it
-    /// from a shell, not from the app, and only after `settleDelay` has passed
-    /// since the bundle changed.
+    /// from a shell, not from the app, after allowing the bundle change to
+    /// settle (the installer supplies this delay). Explicit registration intent:
+    /// retry even when an earlier repair removed the job before failing.
     static func runStandaloneAndExit() -> Never {
-        guard #available(macOS 13.0, *), service.status != .notRegistered else {
-            exit(EXIT_SUCCESS)
+        guard #available(macOS 13.0, *) else {
+            logger.error("login item registration requires macOS 13 or later")
+            exit(EXIT_FAILURE)
         }
 
         exit(repair() ? EXIT_SUCCESS : EXIT_FAILURE)

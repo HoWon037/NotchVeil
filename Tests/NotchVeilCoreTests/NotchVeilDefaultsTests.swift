@@ -1,16 +1,17 @@
 import Foundation
 import Testing
+
 @testable import NotchVeilCore
 
-private func makeDefaults() throws -> UserDefaults {
+private func makeDefaults() throws -> (UserDefaults, String) {
     let suiteName = "NotchVeilTests.\(UUID().uuidString)"
     let defaults = try #require(UserDefaults(suiteName: suiteName))
-    defaults.removePersistentDomain(forName: suiteName)
-    return defaults
+    return (defaults, suiteName)
 }
 
 @Test func movesLegacyValuesToNamespacedKeys() throws {
-    let defaults = try makeDefaults()
+    let (defaults, suiteName) = try makeDefaults()
+    defer { defaults.removePersistentDomain(forName: suiteName) }
     defaults.set(false, forKey: NotchVeilDefaultsKey.legacyIsEnabled)
     defaults.set(true, forKey: NotchVeilDefaultsKey.legacyShowsMenuBarIcon)
 
@@ -23,7 +24,8 @@ private func makeDefaults() throws -> UserDefaults {
 }
 
 @Test func keepsAnExistingNamespacedValue() throws {
-    let defaults = try makeDefaults()
+    let (defaults, suiteName) = try makeDefaults()
+    defer { defaults.removePersistentDomain(forName: suiteName) }
     defaults.set(true, forKey: NotchVeilDefaultsKey.legacyIsEnabled)
     defaults.set(false, forKey: NotchVeilDefaultsKey.isEnabled)
 
@@ -34,7 +36,8 @@ private func makeDefaults() throws -> UserDefaults {
 }
 
 @Test func leavesUntouchedDefaultsAlone() throws {
-    let defaults = try makeDefaults()
+    let (defaults, suiteName) = try makeDefaults()
+    defer { defaults.removePersistentDomain(forName: suiteName) }
 
     NotchVeilDefaultsMigrator.migrate(defaults)
 

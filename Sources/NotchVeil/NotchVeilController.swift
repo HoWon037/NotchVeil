@@ -43,6 +43,14 @@ final class NotchVeilController: NSObject, NSApplicationDelegate {
     }
 
     private func connectSettings() {
+        settings.onLanguageChange = { [weak self] in
+            guard let self else { return }
+            if let statusItem {
+                statusItem.menu = makeStatusMenu()
+                updateStatusToggleItem()
+            }
+            settingsWindowController?.updateTitle(settings.text(.settings))
+        }
         settings.onEnabledChange = { [weak self] enabled in
             guard let self else { return }
             if enabled {
@@ -82,7 +90,7 @@ final class NotchVeilController: NSObject, NSApplicationDelegate {
             NSWorkspace.didWakeNotification,
             NSWorkspace.screensDidWakeNotification,
             NSWorkspace.sessionDidBecomeActiveNotification,
-            NSWorkspace.activeSpaceDidChangeNotification
+            NSWorkspace.activeSpaceDidChangeNotification,
         ]
 
         for name in workspaceNotifications {
@@ -100,7 +108,7 @@ final class NotchVeilController: NSObject, NSApplicationDelegate {
         let hideNotifications: [Notification.Name] = [
             NSWorkspace.willSleepNotification,
             NSWorkspace.screensDidSleepNotification,
-            NSWorkspace.sessionDidResignActiveNotification
+            NSWorkspace.sessionDidResignActiveNotification,
         ]
 
         for name in hideNotifications {
@@ -150,19 +158,15 @@ final class NotchVeilController: NSObject, NSApplicationDelegate {
             }
 
             activeScreenNumbers.insert(screenNumber)
-            let panel = panelsByScreenNumber[screenNumber] ?? NotchVeilPanel(geometry: geometry)
-            panel.updateGeometry(geometry)
+            let panel: NotchVeilPanel
+            if let existingPanel = panelsByScreenNumber[screenNumber] {
+                existingPanel.updateGeometry(geometry)
+                panel = existingPanel
+            } else {
+                panel = NotchVeilPanel(geometry: geometry)
+                panelsByScreenNumber[screenNumber] = panel
+            }
             panel.orderFrontRegardless()
-            panelsByScreenNumber[screenNumber] = panel
-
-            NSLog(
-                "NotchVeil screen=%@ safeTop=%.2f notchHeight=%.2f underlap=%.2f frame=%@",
-                screenNumber,
-                metrics.safeAreaTop,
-                geometry.notchHeight,
-                geometry.underlap,
-                NSStringFromRect(geometry.panelFrame)
-            )
         }
 
         for screenNumber in Set(panelsByScreenNumber.keys).subtracting(activeScreenNumbers) {
@@ -171,7 +175,9 @@ final class NotchVeilController: NSObject, NSApplicationDelegate {
     }
 
     private func hidePanels() {
-        panelsByScreenNumber.values.forEach { $0.orderOut(nil) }
+        for panel in panelsByScreenNumber.values {
+            panel.orderOut(nil)
+        }
     }
 
     private func showSettingsWindow() {
@@ -194,7 +200,8 @@ final class NotchVeilController: NSObject, NSApplicationDelegate {
     private func settingsWindowDidClose() {
         DispatchQueue.main.async { [weak self] in
             guard let self,
-                  settingsWindowController?.window?.isVisible == false else {
+                settingsWindowController?.window?.isVisible == false
+            else {
                 return
             }
             NSApp.setActivationPolicy(.accessory)
@@ -216,20 +223,28 @@ final class NotchVeilController: NSObject, NSApplicationDelegate {
         }
 
         let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
-        let image = NSImage(
-            systemSymbolName: "rectangle.tophalf.inset.filled",
-            accessibilityDescription: "NotchVeil"
-        ) ?? NSImage(
-            systemSymbolName: "rectangle",
-            accessibilityDescription: "NotchVeil"
-        )
+        let image =
+            NSImage(
+                systemSymbolName: "rectangle.tophalf.inset.filled",
+                accessibilityDescription: "NotchVeil"
+            )
+            ?? NSImage(
+                systemSymbolName: "rectangle",
+                accessibilityDescription: "NotchVeil"
+            )
         image?.isTemplate = true
         item.button?.image = image
         item.button?.toolTip = "NotchVeil"
 
+        item.menu = makeStatusMenu()
+        statusItem = item
+        updateStatusToggleItem()
+    }
+
+    private func makeStatusMenu() -> NSMenu {
         let menu = NSMenu()
         let openItem = NSMenuItem(
-            title: "설정 열기",
+            title: settings.text(.openSettings),
             action: #selector(openSettingsFromMenu),
             keyEquivalent: ""
         )
@@ -248,16 +263,14 @@ final class NotchVeilController: NSObject, NSApplicationDelegate {
         menu.addItem(.separator())
 
         let quitItem = NSMenuItem(
-            title: "앱 종료",
+            title: settings.text(.quit),
             action: #selector(quitFromMenu),
             keyEquivalent: "q"
         )
         quitItem.target = self
         menu.addItem(quitItem)
 
-        item.menu = menu
-        statusItem = item
-        updateStatusToggleItem()
+        return menu
     }
 
     private func removeStatusItem() {
@@ -268,7 +281,7 @@ final class NotchVeilController: NSObject, NSApplicationDelegate {
     }
 
     private func updateStatusToggleItem() {
-        statusToggleItem?.title = settings.isEnabled ? "노치 가리기 끄기" : "노치 가리기 켜기"
+        statusToggleItem?.title = settings.text(settings.isEnabled ? .turnOff : .turnOn)
     }
 
     @objc private func openSettingsFromMenu() {
@@ -286,9 +299,9 @@ final class NotchVeilController: NSObject, NSApplicationDelegate {
     private func showLoginItemError(_ message: String) {
         let alert = NSAlert()
         alert.alertStyle = .warning
-        alert.messageText = "자동 실행을 변경할 수 없습니다"
+        alert.messageText = settings.text(.loginError)
         alert.informativeText = message
-        alert.addButton(withTitle: "확인")
+        alert.addButton(withTitle: settings.text(.ok))
         alert.runModal()
     }
 
@@ -297,10 +310,10 @@ final class NotchVeilController: NSObject, NSApplicationDelegate {
 
         let alert = NSAlert()
         alert.alertStyle = .informational
-        alert.messageText = "로그인 항목 허용이 필요합니다"
-        alert.informativeText = "시스템 설정의 로그인 항목에서 NotchVeil을 허용해 주세요."
-        alert.addButton(withTitle: "시스템 설정 열기")
-        alert.addButton(withTitle: "나중에")
+        alert.messageText = settings.text(.approvalTitle)
+        alert.informativeText = settings.text(.approvalDescription)
+        alert.addButton(withTitle: settings.text(.openSystemSettings))
+        alert.addButton(withTitle: settings.text(.later))
 
         if alert.runModal() == .alertFirstButtonReturn {
             SMAppService.openSystemSettingsLoginItems()

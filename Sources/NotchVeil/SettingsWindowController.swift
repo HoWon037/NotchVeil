@@ -16,13 +16,13 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
             rootView: SettingsView(settings: settings, quitAction: quitAction)
         )
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 380, height: 260),
+            contentRect: NSRect(x: 0, y: 0, width: 460, height: 400),
             styleMask: [.titled, .closable],
             backing: .buffered,
             defer: false
         )
 
-        window.title = "NotchVeil"
+        window.title = "NotchVeil — \(settings.text(.settings))"
         window.contentViewController = contentController
         window.isReleasedWhenClosed = false
         window.animationBehavior = .documentWindow
@@ -55,6 +55,10 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
         closeAction()
     }
 
+    func updateTitle(_ title: String) {
+        window?.title = "NotchVeil — \(title)"
+    }
+
     private func fitWindowToContent(_ window: NSWindow) {
         guard let contentView = window.contentViewController?.view else { return }
         contentView.layoutSubtreeIfNeeded()
@@ -82,6 +86,9 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
     }
 
     private func isVisibleOnAnyScreen(_ window: NSWindow) -> Bool {
-        NSScreen.screens.contains { $0.visibleFrame.intersects(window.frame) }
+        // A sliver of the window is not sufficient: the title bar must remain
+        // reachable after disconnecting a display or changing the resolution.
+        let titleBarCenter = NSPoint(x: window.frame.midX, y: window.frame.maxY - 12)
+        return NSScreen.screens.contains { $0.visibleFrame.contains(titleBarCenter) }
     }
 }

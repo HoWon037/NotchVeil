@@ -3,6 +3,7 @@ import Foundation
 /// Preference keys and the one-time rename from the bare keys used up to 0.3.1.
 /// Kept in the core target so the migration can be tested without AppKit.
 public enum NotchVeilDefaultsKey {
+    public static let language = "NotchVeil.language"
     public static let isEnabled = "NotchVeil.isEnabled"
     public static let showsMenuBarIcon = "NotchVeil.showsMenuBarIcon"
     /// cdhash of the app bundle as it was when the login item was registered.
@@ -13,7 +14,7 @@ public enum NotchVeilDefaultsKey {
 
     static let renames: [(legacy: String, current: String)] = [
         (legacyIsEnabled, isEnabled),
-        (legacyShowsMenuBarIcon, showsMenuBarIcon)
+        (legacyShowsMenuBarIcon, showsMenuBarIcon),
     ]
 }
 

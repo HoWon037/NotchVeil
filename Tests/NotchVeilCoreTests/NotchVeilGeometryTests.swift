@@ -1,6 +1,16 @@
 import CoreGraphics
 import Testing
+
 @testable import NotchVeilCore
+
+@Test func shapeRespectsNonzeroBoundsOrigin() {
+    let bounds = CGRect(x: 100, y: -50, width: 1440, height: 50)
+    let path = NotchVeilShapeCalculator.path(in: bounds, underlap: 16)
+    #expect(path.boundingBoxOfPath == bounds)
+    #expect(path.contains(CGPoint(x: bounds.midX, y: bounds.minY + 8)) == false)
+    #expect(path.contains(CGPoint(x: bounds.midX, y: bounds.minY + 25)))
+    #expect(path.contains(CGPoint(x: bounds.minX + 0.5, y: bounds.minY + 8)))
+}
 
 @Test func ignoresScreensWithoutANotch() {
     let metrics = NotchVeilScreenMetrics(

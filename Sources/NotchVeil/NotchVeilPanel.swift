@@ -4,6 +4,8 @@ import NotchVeilCore
 private final class NotchVeilShapeView: NSView {
     private let shapeLayer = CAShapeLayer()
     private var underlap: CGFloat
+    private var renderedBounds: CGRect?
+    private var renderedUnderlap: CGFloat?
 
     init(frame: NSRect, underlap: CGFloat) {
         self.underlap = underlap
@@ -36,6 +38,9 @@ private final class NotchVeilShapeView: NSView {
     /// layer's implicit animations. Without this the veil visibly morphs when a
     /// display is attached or the resolution changes.
     private func updateShape() {
+        guard bounds != renderedBounds || underlap != renderedUnderlap else { return }
+        renderedBounds = bounds
+        renderedUnderlap = underlap
         CATransaction.begin()
         CATransaction.setDisableActions(true)
         shapeLayer.frame = bounds
@@ -78,7 +83,7 @@ final class NotchVeilPanel: NSPanel {
             .canJoinAllSpaces,
             .stationary,
             .fullScreenAuxiliary,
-            .ignoresCycle
+            .ignoresCycle,
         ]
 
         shapeView.autoresizingMask = [.width, .height]
@@ -86,7 +91,9 @@ final class NotchVeilPanel: NSPanel {
     }
 
     func updateGeometry(_ geometry: NotchVeilGeometry) {
-        setFrame(geometry.panelFrame, display: true, animate: false)
+        if frame != geometry.panelFrame {
+            setFrame(geometry.panelFrame, display: true, animate: false)
+        }
         shapeView.update(underlap: geometry.underlap)
     }
 }
