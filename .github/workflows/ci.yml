@@ -44,8 +44,8 @@ jobs:
 
       # Ad-hoc signed: verifies the bundle layout and release build only.
       # Launch-at-login needs a Developer ID identity, which CI does not hold.
-      - name: Build .app
-        run: ./scripts/build-app.sh
+      - name: Build app and disk image
+        run: zsh scripts/package-dmg.sh
 
       - name: Verify bundle layout
         run: |
@@ -55,12 +55,9 @@ jobs:
           test -f dist/NotchVeil.app/Contents/Resources/SettingsIcon.png
           test -f dist/NotchVeil.app/Contents/Resources/SettingsIcon@2x.png
 
-      - name: Archive app with executable permissions
-        run: ditto -c -k --sequesterRsrc --keepParent dist/NotchVeil.app dist/NotchVeil.zip
-
       - uses: actions/upload-artifact@v4
         with:
           name: NotchVeil-app
-          path: dist/NotchVeil.zip
+          path: dist/NotchVeil.dmg
           if-no-files-found: error
           retention-days: 7

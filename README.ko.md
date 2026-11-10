@@ -6,9 +6,11 @@
 
 ## 설치
 
-아직 공개 다운로드는 제공하지 않습니다. 현재 저장소는 소스 코드를 제공하며, 직접 빌드하려면 [개발 안내](docs/development.md)를 참고하세요. Xcode는 빌드할 때만 필요하며, 완성된 앱을 실행할 때는 필요하지 않습니다.
+[NotchVeil.dmg 다운로드 — v0.4.1 Preview](https://github.com/HoWon037/NotchVeil/releases/download/v0.4.1/NotchVeil.dmg) · Apple Silicon용
 
-이미 완성된 `NotchVeil.app`이 있다면 **응용 프로그램** 폴더로 옮긴 뒤 실행하세요. 로컬 빌드는 애드혹 서명이며 공증되지 않았으므로, 다운로드한 앱은 macOS가 실행을 차단할 수 있습니다. [배포 안내](docs/development.md#signing-and-login-items)를 참고하세요.
+`NotchVeil.dmg`를 열고 **NotchVeil**을 **응용 프로그램** 폴더로 드래그한 뒤 실행하면 됩니다. 설치에 Xcode는 필요하지 않습니다.
+
+이 프리뷰는 애드혹 서명이며 **Apple 공증을 받지 않았습니다**. 최초 실행을 macOS가 차단할 수 있고, 업데이트 후 로그인 자동 실행에 문제가 생길 수 있습니다. [배포 안내](docs/development.md#signing-and-login-items)를 참고하세요. 직접 빌드하려면 [개발 안내](docs/development.md)를 참고하세요.
 
 ## 기능
 

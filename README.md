@@ -6,9 +6,11 @@ Blend your MacBook’s notch into a black menu bar background.
 
 ## Installation
 
-A public app download is not available yet. This repository currently provides the source code; see [Development](docs/development.md) to build the app yourself. Xcode is only needed for building, not for running a packaged app.
+[Download NotchVeil.dmg — v0.4.1 Preview](https://github.com/HoWon037/NotchVeil/releases/download/v0.4.1/NotchVeil.dmg) · Apple Silicon
 
-If you already have a packaged `NotchVeil.app`, move it into **Applications** and open it. Local builds are ad-hoc signed and are not notarized; macOS may block a downloaded build. See the [distribution notes](docs/development.md#signing-and-login-items).
+Open `NotchVeil.dmg`, drag **NotchVeil** to **Applications**, then launch it from Applications. Xcode is not needed to install the app.
+
+This preview is ad-hoc signed and **not notarized by Apple**. macOS may block it on first launch, and launch at login may fail after updates. See the [distribution notes](docs/development.md#signing-and-login-items). To build from source instead, see [Development](docs/development.md).
 
 ## Features
 

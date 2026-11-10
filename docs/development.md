@@ -10,7 +10,11 @@ zsh scripts/check.sh
 ./scripts/build-app.sh
 ```
 
-CI runs tests on macos-15 and macos-latest. The packaging job archives the app as a ZIP to preserve executable permissions. CI artifacts are ad-hoc signed development builds, not notarized releases.
+CI runs tests on macos-15 and macos-latest. The packaging job creates a compressed DMG containing the app and an Applications shortcut. CI artifacts are ad-hoc signed development builds, not notarized releases.
+
+Create the disk image locally with `zsh scripts/package-dmg.sh`. It rebuilds the app, verifies the disk image, and writes `dist/NotchVeil.dmg`. An existing DMG is replaced only after the new image passes verification. Packaging does not sign or notarize the disk image.
+
+Local builds target the build machine's architecture. The v0.4.1 preview DMG is arm64 (Apple Silicon), not a universal binary. The deployment target alone does not imply that the downloadable build runs on Intel Macs.
 
 `scripts/check.sh` is the shared local/CI entry point for shell syntax, plist metadata, Swift formatting, unit tests and isolated script tests. It does not install or launch the app. The build script assembles and verifies a staged bundle before replacing its previous output. Compilation, resource and signing failures leave the previous output untouched. If replacement fails, the script restores the previous bundle; if restoration also fails, its backup is kept and the path is printed.
 
