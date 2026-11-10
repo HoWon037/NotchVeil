@@ -2,50 +2,29 @@
 
 [English](README.md) · **한국어**
 
-메뉴 막대 뒤에 검은 배경을 표시해 MacBook의 노치를 자연스럽게 감춥니다.
+메뉴 막대에 검은 배경을 표시해 MacBook의 노치를 감춥니다.
+
+[**Mac용 다운로드**](https://github.com/HoWon037/NotchVeil/releases/download/v0.4.1/NotchVeil.dmg) · Apple Silicon · [릴리스](https://github.com/HoWon037/NotchVeil/releases)
 
 ## 설치
 
-[NotchVeil.dmg 다운로드 — v0.4.1 Preview](https://github.com/HoWon037/NotchVeil/releases/download/v0.4.1/NotchVeil.dmg) · Apple Silicon용
+1. `NotchVeil.dmg`를 엽니다.
+2. **NotchVeil**을 **응용 프로그램** 폴더로 드래그합니다.
+3. 응용 프로그램 폴더에서 NotchVeil을 실행합니다.
 
-`NotchVeil.dmg`를 열고 **NotchVeil**을 **응용 프로그램** 폴더로 드래그한 뒤 실행하면 됩니다. 설치에 Xcode는 필요하지 않습니다.
-
-이 프리뷰는 애드혹 서명이며 **Apple 공증을 받지 않았습니다**. 최초 실행을 macOS가 차단할 수 있고, 업데이트 후 로그인 자동 실행에 문제가 생길 수 있습니다. [배포 안내](docs/development.md#signing-and-login-items)를 참고하세요. 직접 빌드하려면 [개발 안내](docs/development.md)를 참고하세요.
+메뉴 막대 아이콘을 숨겼더라도 앱을 다시 열면 설정을 볼 수 있습니다.
 
 ## 기능
 
-- 모델별 고정값 대신 화면의 안전 영역을 읽어 노치 크기에 맞춥니다.
-- 다른 앱 창 뒤에 표시하며 클릭이나 키보드 입력을 가로채지 않습니다.
-- 노치 없는 디스플레이에는 표시하지 않습니다.
-- 로그인 자동 실행과 메뉴 막대 아이콘을 선택할 수 있습니다. 기본값은 둘 다 꺼짐입니다.
-- 설정에서 한국어와 영어를 선택할 수 있습니다.
+- 화면의 노치 크기에 자동으로 맞춥니다.
+- 노치 없는 디스플레이에는 영향을 주지 않습니다.
+- 로그인 자동 실행과 메뉴 막대 아이콘을 선택할 수 있습니다.
+- 한국어와 영어를 지원합니다.
 
-## 요구 사항
+## 지원 환경
 
-노치가 있는 디스플레이를 사용하는 Mac이 필요합니다. 앱의 배포 대상은 macOS 12 이상이며, 로그인 자동 실행은 macOS 13 이상에서 지원합니다.
+노치가 있는 Apple Silicon Mac, macOS 12 이상. 로그인 자동 실행은 macOS 13 이상에서 지원하며, 잠금화면에서는 동작하지 않습니다.
 
-최소 OS 버전은 빌드의 배포 대상이지, 모든 지원 macOS 버전과 MacBook 모델에서 검증했다는 뜻은 아닙니다. [테스트 범위](docs/testing/screen-matrix.md)를 참고하세요.
+---
 
-## 설정
-
-메뉴 막대 아이콘을 숨겼더라도 응용 프로그램 폴더에서 NotchVeil을 다시 열면 설정을 볼 수 있습니다.
-
-노치 가리기, 로그인 자동 실행, 메뉴 막대 아이콘 표시를 바꾸거나 언어를 선택할 수 있습니다. 설정 창을 닫아도 앱은 계속 실행됩니다. 종료하려면 **앱 종료**를 누르세요. 로그인 시에는 설정 창 없이 시작합니다.
-
-## 제한 사항
-
-- 잠금화면에서는 노치를 가리지 못합니다.
-- 가상 입력으로 화면 계산을 검증했으며, 모든 MacBook 모델의 외관을 실기기로 확인한 것은 아닙니다.
-- 애드혹 서명된 개발 빌드는 업데이트 후 로그인 항목에 문제가 생길 수 있습니다. [문제 해결 안내](docs/development.md#signing-and-login-items)를 참고하세요.
-
-## 개발
-
-빌드·테스트·소스 설치 명령은 [개발 안내](docs/development.md)에 있습니다. 버그 제보와 코드 기여는 [기여 안내](CONTRIBUTING.md)를 참고하세요.
-
-## 개인정보
-
-계정, 분석 도구, 네트워크 요청을 사용하지 않습니다. 설정은 Mac에 로컬로 저장합니다.
-
-## 라이선스
-
-[MIT](LICENSE)
+[개발 안내](docs/development.md) · [기여 안내](CONTRIBUTING.md) · [MIT 라이선스](LICENSE)
