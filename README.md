@@ -14,13 +14,26 @@
 ## Quick start
 
 1. Open `NotchVeil.dmg` and drag the app into **Applications**.
-2. Open **NotchVeil** from Applications.
+2. Open **NotchVeil** from Applications. The notch is hidden by default on first launch.
 
-NotchVeil puts a black background behind the menu bar on displays with a notch. It leaves other displays alone and doesn’t cover the notch on the lock screen.
+## How it works
+
+NotchVeil draws a black background behind the menu bar. It reads the display’s safe area to work out how tall the background needs to be, rather than using fixed sizes for each MacBook model.
+
+The background sits behind your app windows and doesn’t intercept clicks. Your wallpaper and displays without a notch stay unchanged. The notch remains visible on the lock screen.
 
 ## Settings
 
-Open NotchVeil again to change its settings, even if the menu bar icon is hidden. You can turn notch hiding off, show or hide the icon, and switch between English and Korean. Launch at login is available on macOS 13 and later.
+Closing Settings leaves NotchVeil running. Open the app again from Applications to get back to Settings, or choose **Open Settings…** from the menu bar icon if you’ve turned it on.
+
+| Setting | What it does |
+| --- | --- |
+| **Hide notch** | Turns the black background on or off without quitting. |
+| **Launch at login** | Starts NotchVeil without opening Settings when you log in. Requires macOS 13 or later. |
+| **Show menu bar icon** | Adds a shortcut to Settings and the notch toggle. |
+| **Language** | Follows your system language, or lets you pick English or Korean. |
+
+To stop NotchVeil, choose **Quit App** in Settings.
 
 ---
 
