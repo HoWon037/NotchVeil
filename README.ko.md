@@ -4,31 +4,22 @@
 
 <h1 align="center">NotchVeil</h1>
 
-<p align="center">메뉴 막대에 검은 배경을 표시해 MacBook의 노치를 감춥니다.</p>
+<p align="center">메뉴 막대를 검게 만들어 맥북의 노치를 가립니다. 배경화면은 그대로 둡니다.</p>
 
 <p align="center">
   <a href="https://github.com/HoWon037/NotchVeil/releases/download/v0.4.1/NotchVeil.dmg"><strong>Mac용 다운로드</strong></a> · Apple Silicon<br>
   <a href="https://github.com/HoWon037/NotchVeil/releases">릴리스</a> · <a href="README.md">English</a>
 </p>
 
-## 설치
+## 설치와 사용
 
-1. `NotchVeil.dmg`를 엽니다.
-2. **NotchVeil**을 **응용 프로그램** 폴더로 드래그합니다.
-3. 응용 프로그램 폴더에서 NotchVeil을 실행합니다.
+DMG를 열고 **NotchVeil**을 **응용 프로그램** 폴더로 옮긴 다음, 거기서 앱을 열면 됩니다.
 
-메뉴 막대 아이콘을 숨겼더라도 앱을 다시 열면 설정을 볼 수 있습니다.
-
-## 기능
-
-- 화면의 노치 크기에 자동으로 맞춥니다.
-- 노치 없는 디스플레이에는 영향을 주지 않습니다.
-- 로그인 자동 실행과 메뉴 막대 아이콘을 선택할 수 있습니다.
-- 한국어와 영어를 지원합니다.
+노치 가리기를 잠시 끄거나 로그인할 때 앱을 자동으로 열고 싶다면 설정에서 바꾸세요. 언어는 한국어와 영어 중에서 고를 수 있습니다. 메뉴 막대 아이콘을 숨긴 뒤에도 응용 프로그램에서 앱을 다시 열면 설정이 나옵니다.
 
 ## 지원 환경
 
-노치가 있는 Apple Silicon Mac, macOS 12 이상. 로그인 자동 실행은 macOS 13 이상에서 지원하며, 잠금화면에서는 동작하지 않습니다.
+노치가 있는 Apple Silicon 맥북에서 쓸 수 있습니다. macOS 12 이상이 필요하고, 로그인 자동 실행은 macOS 13부터 지원합니다. 노치가 없는 화면은 그대로 두며, 잠금화면에서는 노치를 가리지 않습니다.
 
 ---
 
