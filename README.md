@@ -4,23 +4,24 @@
 
 <h1 align="center">NotchVeil</h1>
 
-<p align="center">NotchVeil turns the menu bar black so the notch blends in. Your wallpaper stays the same.</p>
+<p align="center"><strong>Hide the MacBook notch without changing your wallpaper.</strong></p>
 
 <p align="center">
-  <a href="https://github.com/HoWon037/NotchVeil/releases/download/v0.4.1/NotchVeil.dmg"><strong>Download for Mac</strong></a> · Apple Silicon<br>
-  <a href="https://github.com/HoWon037/NotchVeil/releases">Releases</a> · <a href="README.ko.md">한국어</a>
+  <a href="https://github.com/HoWon037/NotchVeil/releases/download/v0.4.1/NotchVeil.dmg"><strong>Download for Mac (.dmg)</strong></a><br>
+  Apple Silicon · macOS 12+ · <a href="README.ko.md">한국어</a>
 </p>
 
-## Getting started
+## Quick start
 
-Open the DMG, drag **NotchVeil** into **Applications**, and open it from there.
+1. Open `NotchVeil.dmg` and drag the app into **Applications**.
+2. Open **NotchVeil** from Applications.
 
-In Settings, you can turn off notch hiding, start the app at login, or choose English or Korean. If you hide the menu bar icon, reopen NotchVeil from Applications to get back to Settings.
+NotchVeil puts a black background behind the menu bar on displays with a notch. It leaves other displays alone and doesn’t cover the notch on the lock screen.
 
-## Requirements
+## Settings
 
-The download is for Apple Silicon MacBooks with a notch, running macOS 12 or later. Launch at login needs macOS 13 or later. Screens without a notch stay as they are, and NotchVeil doesn’t hide the notch on the lock screen.
+Open NotchVeil again to change its settings, even if the menu bar icon is hidden. You can turn notch hiding off, show or hide the icon, and switch between English and Korean. Launch at login is available on macOS 13 and later.
 
 ---
 
-[Development](docs/development.md) · [Contributing](CONTRIBUTING.md) · [MIT License](LICENSE)
+[Releases](https://github.com/HoWon037/NotchVeil/releases) · [Build from source](docs/development.md) · [Contributing](CONTRIBUTING.md) · [MIT License](LICENSE)
