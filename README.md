@@ -24,16 +24,7 @@ The background sits behind your app windows and doesn’t intercept clicks. Your
 
 ## Settings
 
-Closing Settings leaves NotchVeil running. Open the app again from Applications to get back to Settings, or choose **Open Settings…** from the menu bar icon if you’ve turned it on.
-
-| Setting | What it does |
-| --- | --- |
-| **Hide notch** | Turns the black background on or off without quitting. |
-| **Launch at login** | Starts NotchVeil without opening Settings when you log in. Requires macOS 13 or later. |
-| **Show menu bar icon** | Adds a shortcut to Settings and the notch toggle. |
-| **Language** | Follows your system language, or lets you pick English or Korean. |
-
-To stop NotchVeil, choose **Quit App** in Settings.
+Reopen NotchVeil from Applications to change your settings. To stop the app, click **Quit App** instead of closing the window.
 
 ---
 
