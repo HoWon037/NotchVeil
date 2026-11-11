@@ -1,10 +1,15 @@
-# NotchVeil
+<p align="center">
+  <img src="Resources/AppIcon-1024.png" alt="NotchVeil app icon" width="112" height="112">
+</p>
 
-**English** · [한국어](README.ko.md)
+<h1 align="center">NotchVeil</h1>
 
-Hide your MacBook’s notch with a black menu bar background.
+<p align="center">Hide your MacBook’s notch with a black menu bar background.</p>
 
-[**Download for Mac**](https://github.com/HoWon037/NotchVeil/releases/download/v0.4.1/NotchVeil.dmg) · Apple Silicon · [Releases](https://github.com/HoWon037/NotchVeil/releases)
+<p align="center">
+  <a href="https://github.com/HoWon037/NotchVeil/releases/download/v0.4.1/NotchVeil.dmg"><strong>Download for Mac</strong></a> · Apple Silicon<br>
+  <a href="https://github.com/HoWon037/NotchVeil/releases">Releases</a> · <a href="README.ko.md">한국어</a>
+</p>
 
 ## Installation
 

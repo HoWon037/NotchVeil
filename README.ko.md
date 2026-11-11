@@ -1,10 +1,15 @@
-# NotchVeil
+<p align="center">
+  <img src="Resources/AppIcon-1024.png" alt="NotchVeil 앱 아이콘" width="112" height="112">
+</p>
 
-[English](README.md) · **한국어**
+<h1 align="center">NotchVeil</h1>
 
-메뉴 막대에 검은 배경을 표시해 MacBook의 노치를 감춥니다.
+<p align="center">메뉴 막대에 검은 배경을 표시해 MacBook의 노치를 감춥니다.</p>
 
-[**Mac용 다운로드**](https://github.com/HoWon037/NotchVeil/releases/download/v0.4.1/NotchVeil.dmg) · Apple Silicon · [릴리스](https://github.com/HoWon037/NotchVeil/releases)
+<p align="center">
+  <a href="https://github.com/HoWon037/NotchVeil/releases/download/v0.4.1/NotchVeil.dmg"><strong>Mac용 다운로드</strong></a> · Apple Silicon<br>
+  <a href="https://github.com/HoWon037/NotchVeil/releases">릴리스</a> · <a href="README.md">English</a>
+</p>
 
 ## 설치
 
