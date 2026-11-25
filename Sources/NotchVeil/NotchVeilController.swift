@@ -4,7 +4,17 @@ import ServiceManagement
 
 @MainActor
 final class NotchVeilController: NSObject, NSApplicationDelegate {
-    private var panelsByScreenNumber: [NSNumber: NotchVeilPanel] = [:]
+    private struct PanelKey: Hashable {
+        enum Position: Hashable {
+            case notch
+            case bottom(NotchVeilBottomCorner)
+        }
+
+        let display: CGDirectDisplayID
+        let position: Position
+    }
+
+    private var panels: [PanelKey: NotchVeilPanel] = [:]
     private var defaultCenterObservers: [NSObjectProtocol] = []
     private var workspaceObservers: [NSObjectProtocol] = []
     private let settings = AppSettings()
@@ -51,14 +61,14 @@ final class NotchVeilController: NSObject, NSApplicationDelegate {
             }
             settingsWindowController?.updateTitle(settings.text(.settings))
         }
-        settings.onEnabledChange = { [weak self] enabled in
+        settings.onEnabledChange = { [weak self] _ in
             guard let self else { return }
-            if enabled {
-                rebuildPanels()
-            } else {
-                hidePanels()
-            }
+            rebuildPanels()
             updateStatusToggleItem()
+        }
+
+        settings.onBottomCornersChange = { [weak self] in
+            self?.rebuildPanels()
         }
 
         settings.onMenuBarIconChange = { [weak self] _ in
@@ -132,50 +142,67 @@ final class NotchVeilController: NSObject, NSApplicationDelegate {
     }
 
     private func rebuildPanels() {
-        guard settings.isEnabled else {
+        guard settings.isEnabled || settings.roundsBottomCorners else {
             hidePanels()
             return
         }
 
-        var activeScreenNumbers = Set<NSNumber>()
+        var activePanels = Set<PanelKey>()
 
         for screen in NSScreen.screens {
             guard let screenNumber = screen.deviceDescription[.init("NSScreenNumber")] as? NSNumber else {
                 continue
             }
+            let display = screenNumber.uint32Value
 
-            let metrics = NotchVeilScreenMetrics(
-                frame: screen.frame,
-                safeAreaTop: screen.safeAreaInsets.top,
-                auxiliaryTopLeft: screen.auxiliaryTopLeftArea ?? .zero,
-                auxiliaryTopRight: screen.auxiliaryTopRightArea ?? .zero,
-                backingScaleFactor: screen.backingScaleFactor
-            )
-
-            guard let geometry = NotchVeilGeometryCalculator.geometry(for: metrics) else {
-                panelsByScreenNumber.removeValue(forKey: screenNumber)?.orderOut(nil)
-                continue
+            if settings.isEnabled {
+                let metrics = NotchVeilScreenMetrics(
+                    frame: screen.frame,
+                    safeAreaTop: screen.safeAreaInsets.top,
+                    auxiliaryTopLeft: screen.auxiliaryTopLeftArea ?? .zero,
+                    auxiliaryTopRight: screen.auxiliaryTopRightArea ?? .zero,
+                    backingScaleFactor: screen.backingScaleFactor
+                )
+                if let geometry = NotchVeilGeometryCalculator.geometry(for: metrics) {
+                    let key = PanelKey(display: display, position: .notch)
+                    showPanel(at: key, frame: geometry.panelFrame, shape: .notch(underlap: geometry.underlap))
+                    activePanels.insert(key)
+                }
             }
 
-            activeScreenNumbers.insert(screenNumber)
-            let panel: NotchVeilPanel
-            if let existingPanel = panelsByScreenNumber[screenNumber] {
-                existingPanel.updateGeometry(geometry)
-                panel = existingPanel
-            } else {
-                panel = NotchVeilPanel(geometry: geometry)
-                panelsByScreenNumber[screenNumber] = panel
+            // The corners belong to the built-in display, not the Dock's work area.
+            if settings.roundsBottomCorners, CGDisplayIsBuiltin(display) != 0 {
+                for corner in NotchVeilBottomCorner.allCases {
+                    guard
+                        let frame = corner.panelFrame(
+                            in: screen.frame, backingScaleFactor: screen.backingScaleFactor)
+                    else { continue }
+                    let key = PanelKey(display: display, position: .bottom(corner))
+                    showPanel(at: key, frame: frame, shape: .bottomCorner(corner))
+                    activePanels.insert(key)
+                }
             }
-            panel.orderFrontRegardless()
         }
 
-        for screenNumber in Set(panelsByScreenNumber.keys).subtracting(activeScreenNumbers) {
-            panelsByScreenNumber.removeValue(forKey: screenNumber)?.orderOut(nil)
+        for key in Set(panels.keys).subtracting(activePanels) {
+            panels.removeValue(forKey: key)?.orderOut(nil)
         }
     }
 
+    private func showPanel(at key: PanelKey, frame: CGRect, shape: NotchVeilPanelShape) {
+        let panel: NotchVeilPanel
+        if let existing = panels[key] {
+            existing.update(frame: frame, shape: shape)
+            panel = existing
+        } else {
+            panel = NotchVeilPanel(frame: frame, shape: shape)
+            panels[key] = panel
+        }
+        panel.orderFrontRegardless()
+    }
+
     private func hidePanels() {
-        for panel in panelsByScreenNumber.values {
+        for panel in panels.values {
             panel.orderOut(nil)
         }
     }

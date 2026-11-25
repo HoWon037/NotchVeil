@@ -7,7 +7,7 @@
 <p align="center"><strong>Hide the MacBook notch without changing your wallpaper.</strong></p>
 
 <p align="center">
-  <a href="https://github.com/HoWon037/NotchVeil/releases/download/v0.4.1/NotchVeil.dmg"><strong>Download for Mac (.dmg)</strong></a><br>
+  <a href="https://github.com/HoWon037/NotchVeil/releases/download/v0.4.2/NotchVeil.dmg"><strong>Download for Mac (.dmg)</strong></a><br>
   Apple Silicon · macOS 12+ · <a href="README.ko.md">한국어</a>
 </p>
 
@@ -18,6 +18,8 @@ Open `NotchVeil.dmg` and drag the app into **Applications**.
 ## Features
 
 NotchVeil adds a black background behind the menu bar on displays with a notch. Its height comes from macOS display information, not a list of MacBook models. The background stays behind other windows and doesn’t intercept clicks.
+
+**Round bottom corners** fills the gaps around rounded windows that reach the bottom corners of the built-in display. It works independently of notch hiding and is off by default.
 
 NotchVeil supports an optional menu bar icon, launch at login on macOS 13 or later, and English and Korean. It doesn’t hide the notch on the lock screen.
 

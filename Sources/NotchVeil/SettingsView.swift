@@ -38,14 +38,25 @@ struct SettingsView: View {
             }
             VStack(alignment: .leading, spacing: 8) {
                 sectionHeading(settings.text(.notchSection))
-                SettingToggleRow(
-                    title: settings.text(.hideNotch),
-                    isOn: Binding(
-                        get: { settings.isEnabled },
-                        set: { settings.setEnabled($0) }
+                VStack(spacing: 0) {
+                    SettingToggleRow(
+                        title: settings.text(.hideNotch),
+                        isOn: Binding(
+                            get: { settings.isEnabled },
+                            set: { settings.setEnabled($0) }
+                        )
                     )
-                )
-                .padding(14)
+                    .padding(14)
+                    Divider().padding(.horizontal, 14)
+                    SettingToggleRow(
+                        title: settings.text(.roundBottomCorners),
+                        isOn: Binding(
+                            get: { settings.roundsBottomCorners },
+                            set: { settings.setRoundsBottomCorners($0) }
+                        )
+                    )
+                    .padding(14)
+                }
                 .background(groupBackground)
             }
 

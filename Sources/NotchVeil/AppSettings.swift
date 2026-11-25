@@ -8,11 +8,13 @@ final class AppSettings: ObservableObject {
     private typealias Key = NotchVeilDefaultsKey
 
     @Published private(set) var isEnabled: Bool
+    @Published private(set) var roundsBottomCorners: Bool
     @Published private(set) var launchesAtLogin: Bool
     @Published private(set) var showsMenuBarIcon: Bool
     @Published private(set) var language: AppLanguage
 
     var onEnabledChange: ((Bool) -> Void)?
+    var onBottomCornersChange: (() -> Void)?
     var onMenuBarIconChange: ((Bool) -> Void)?
     var onLanguageChange: (() -> Void)?
     var onLoginItemError: ((String) -> Void)?
@@ -31,6 +33,7 @@ final class AppSettings: ObservableObject {
         }
 
         isEnabled = defaults.bool(forKey: Key.isEnabled)
+        roundsBottomCorners = defaults.bool(forKey: Key.roundsBottomCorners)
         showsMenuBarIcon = defaults.bool(forKey: Key.showsMenuBarIcon)
         Self.migrateMainAppLoginItemIfNeeded()
         launchesAtLogin = Self.currentLaunchAtLoginState
@@ -64,6 +67,13 @@ final class AppSettings: ObservableObject {
         showsMenuBarIcon = shown
         defaults.set(shown, forKey: Key.showsMenuBarIcon)
         onMenuBarIconChange?(shown)
+    }
+
+    func setRoundsBottomCorners(_ enabled: Bool) {
+        guard enabled != roundsBottomCorners else { return }
+        roundsBottomCorners = enabled
+        defaults.set(enabled, forKey: Key.roundsBottomCorners)
+        onBottomCornersChange?()
     }
 
     func setLaunchesAtLogin(_ enabled: Bool) {

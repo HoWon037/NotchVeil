@@ -1,14 +1,28 @@
 import AppKit
 import NotchVeilCore
 
+enum NotchVeilPanelShape: Equatable {
+    case notch(underlap: CGFloat)
+    case bottomCorner(NotchVeilBottomCorner)
+
+    func path(in bounds: CGRect) -> CGPath {
+        switch self {
+        case .notch(let underlap):
+            NotchVeilShapeCalculator.path(in: bounds, underlap: underlap)
+        case .bottomCorner(let corner):
+            corner.path(in: bounds)
+        }
+    }
+}
+
 private final class NotchVeilShapeView: NSView {
     private let shapeLayer = CAShapeLayer()
-    private var underlap: CGFloat
+    private var shape: NotchVeilPanelShape
     private var renderedBounds: CGRect?
-    private var renderedUnderlap: CGFloat?
+    private var renderedShape: NotchVeilPanelShape?
 
-    init(frame: NSRect, underlap: CGFloat) {
-        self.underlap = underlap
+    init(frame: NSRect, shape: NotchVeilPanelShape) {
+        self.shape = shape
         super.init(frame: frame)
 
         wantsLayer = true
@@ -29,8 +43,8 @@ private final class NotchVeilShapeView: NSView {
         updateShape()
     }
 
-    func update(underlap: CGFloat) {
-        self.underlap = underlap
+    func update(shape: NotchVeilPanelShape) {
+        self.shape = shape
         updateShape()
     }
 
@@ -38,13 +52,13 @@ private final class NotchVeilShapeView: NSView {
     /// layer's implicit animations. Without this the veil visibly morphs when a
     /// display is attached or the resolution changes.
     private func updateShape() {
-        guard bounds != renderedBounds || underlap != renderedUnderlap else { return }
+        guard bounds != renderedBounds || shape != renderedShape else { return }
         renderedBounds = bounds
-        renderedUnderlap = underlap
+        renderedShape = shape
         CATransaction.begin()
         CATransaction.setDisableActions(true)
         shapeLayer.frame = bounds
-        shapeLayer.path = NotchVeilShapeCalculator.path(in: bounds, underlap: underlap)
+        shapeLayer.path = shape.path(in: bounds)
         CATransaction.commit()
     }
 }
@@ -55,13 +69,13 @@ final class NotchVeilPanel: NSPanel {
     override var canBecomeKey: Bool { false }
     override var canBecomeMain: Bool { false }
 
-    init(geometry: NotchVeilGeometry) {
+    init(frame: NSRect, shape: NotchVeilPanelShape) {
         shapeView = NotchVeilShapeView(
-            frame: NSRect(origin: .zero, size: geometry.panelFrame.size),
-            underlap: geometry.underlap
+            frame: NSRect(origin: .zero, size: frame.size),
+            shape: shape
         )
         super.init(
-            contentRect: geometry.panelFrame,
+            contentRect: frame,
             styleMask: [.borderless, .nonactivatingPanel],
             backing: .buffered,
             defer: false
@@ -90,10 +104,10 @@ final class NotchVeilPanel: NSPanel {
         contentView = shapeView
     }
 
-    func updateGeometry(_ geometry: NotchVeilGeometry) {
-        if frame != geometry.panelFrame {
-            setFrame(geometry.panelFrame, display: true, animate: false)
+    func update(frame newFrame: NSRect, shape: NotchVeilPanelShape) {
+        if frame != newFrame {
+            setFrame(newFrame, display: true, animate: false)
         }
-        shapeView.update(underlap: geometry.underlap)
+        shapeView.update(shape: shape)
     }
 }

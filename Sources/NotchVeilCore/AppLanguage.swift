@@ -30,7 +30,7 @@ public enum AppLanguage: String, CaseIterable, Identifiable {
 }
 
 public enum AppText: CaseIterable {
-    case settings, notchSection, hideNotch
+    case settings, notchSection, hideNotch, roundBottomCorners
     case generalSection, launchAtLogin, menuBarIcon, language, systemLanguage
     case quit, openSettings, turnOff, turnOn
     case loginError, approvalTitle, approvalDescription, openSystemSettings, later, ok
@@ -40,6 +40,7 @@ public enum AppText: CaseIterable {
         case .settings: ("설정", "Settings")
         case .notchSection: ("디스플레이", "Display")
         case .hideNotch: ("노치 가리기", "Hide notch")
+        case .roundBottomCorners: ("하단 모서리 둥글게", "Round bottom corners")
         case .generalSection: ("일반", "General")
         case .launchAtLogin: ("로그인할 때 자동 실행", "Launch at login")
         case .menuBarIcon: ("메뉴 막대 아이콘 표시", "Show menu bar icon")

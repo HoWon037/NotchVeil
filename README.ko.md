@@ -7,7 +7,7 @@
 <p align="center"><strong>배경화면을 바꾸지 않고 맥북 노치를 가립니다.</strong></p>
 
 <p align="center">
-  <a href="https://github.com/HoWon037/NotchVeil/releases/download/v0.4.1/NotchVeil.dmg"><strong>Mac용 다운로드 (.dmg)</strong></a><br>
+  <a href="https://github.com/HoWon037/NotchVeil/releases/download/v0.4.2/NotchVeil.dmg"><strong>Mac용 다운로드 (.dmg)</strong></a><br>
   Apple Silicon · macOS 12 이상 · <a href="README.md">English</a>
 </p>
 
@@ -18,6 +18,8 @@
 ## 기능
 
 노치가 있는 화면의 메뉴 막대 뒤에만 검은 배경을 띄웁니다. 높이는 맥북 기종별 고정값 대신 macOS가 알려주는 화면 정보에 맞춥니다. 다른 앱 창 뒤에 표시되고 클릭을 가로채지 않습니다.
+
+**하단 모서리 둥글게**는 둥근 창이 맥북 내장 화면 끝에 닿을 때 양쪽 아래에 남는 틈을 검게 채웁니다. 노치 가리기와 별개이며 기본값은 꺼짐입니다.
 
 메뉴 막대 아이콘, 로그인 자동 실행(macOS 13 이상), 한국어·영어를 지원합니다. 잠금화면에서는 노치를 가리지 않습니다.
 
